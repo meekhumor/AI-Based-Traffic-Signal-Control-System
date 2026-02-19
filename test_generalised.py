@@ -102,7 +102,7 @@ config_file = "intersection.sumocfg"
 env = TrafficLightEnv(config_file)
 model = DQN.load("models/kingcircle")
 
-obs, _ = env.reset()
+obs, _ = env.reset()q
 total_reward = 0
 for _ in range(1000):
     action, _states = model.predict(obs, deterministic=True)

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture('videos/road.mp4')  
+cap = cv2.VideoCapture('videos/rush.mp4')  
 
 frame_count = 0
 stored_lines = {'blue': None, 'red': None, 'green': None}
