@@ -39,9 +39,7 @@ In India's rapidly growing cities, traffic intersections have become critical bo
   <video src="https://github.com/user-attachments/assets/84eb35d4-ce2e-4db9-9734-502bc9cbacee" width="350" controls></video>
 </p>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/a452e21f-c295-42d1-bf9e-40dc430030e7" width="350" />
-</p>
+<img src="https://github.com/user-attachments/assets/a452e21f-c295-42d1-bf9e-40dc430030e7" width="600" />
 
 <hr />
 
