@@ -1,29 +1,29 @@
-<h1 align="center">SMART FLOW: AI-Powered Traffic Management System</h1>
+<h1 align="center">Smart Flow: AI Powered Traffic Management System</h1>
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/49f2935d-1a60-4035-af3f-97eb70cea058" width="350" />
 </p>
 
 <div align="center">
-  <strong>Revolutionizing urban traffic management through AI-driven intelligent traffic light control systems that adapt to real-time congestion patterns, reducing wait times and emissions while enhancing city mobility.</strong>
+  <strong>Revolutionizing urban traffic management through AI-driven intelligent traffic light control systems that adapt to real time congestion patterns, reducing wait times and emissions while enhancing city mobility.</strong>
 </div>
 
 <br />
 
-## 📑 Table of Contents
+## Table of Contents
 
-* [The Urban Challenge](#-the-urban-challenge)
-* [Our Solution](#-our-solution)
-* [Project Structure](#-project-structure)
-* [Quick Start & Setup](#-quick-start--setup)
-* [Core Technologies](#️-core-technologies)
-* [System Architecture](#-system-architecture)
-* [Key Results](#-key-results)
-* [Real-world Impact](#-real-world-impact)
-* [Future Roadmap](#-future-roadmap)
-* [Team Members](#-team-members)
+* [The Urban Challenge](#the-urban-challenge)
+* [Our Solution](#our-solution)
+* [Project Structure](#project-structure)
+* [Quick Start & Setup](#quick-start--setup)
+* [Core Technologies](#core-technologies)
+* [System Architecture](#system-architecture)
+* [Key Results](#key-results)
+* [Real-world Impact](#real-world-impact)
+* [Future Roadmap](#future-roadmap)
+* [Team Members](#team-members)
 
-## 🌆 The Urban Challenge
+## The Urban Challenge
 
 In India's rapidly growing cities, traffic intersections have become critical bottlenecks, where:
 * Average commuters lose 2-3 hours daily in traffic congestion
@@ -31,11 +31,7 @@ In India's rapidly growing cities, traffic intersections have become critical bo
 * Manual traffic management is inconsistent and resource-intensive
 * Vehicle emissions from idling contribute significantly to urban air pollution
 
-Smart Flow transforms these painpoints into opportunities for creating smarter, more efficient urban mobility.
-
 ## Our Solution
-
-### Smart Flow's Adaptive Intelligence System
 
 **Vehicle Count Detection**
 
@@ -43,7 +39,7 @@ https://github.com/user-attachments/assets/84eb35d4-ce2e-4db9-9734-502bc9cbacee
 
 <img src="https://github.com/user-attachments/assets/a452e21f-c295-42d1-bf9e-40dc430030e7" width="600" />
 
-<br />
+<hr />
 
 **Reinforcement Learning**
 
@@ -54,38 +50,34 @@ https://github.com/user-attachments/assets/e88b2391-1fb8-4e7a-8a19-c6cf92b9dc3e
 <br />
 
 Unlike traditional systems, Smart Flow:
-* **Sees** traffic conditions in real-time through computer vision
+* **Sees** traffic conditions in real time through computer vision
 * **Learns** from historical patterns using reinforcement learning
 * **Adapts** signal timings dynamically to optimize flow
-* **Coordinates** across multiple intersections for network-wide efficiency
+* **Coordinates** across multiple intersections for network wide efficiency
 
----
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 AI-Based-Traffic-Signal-Control-System/
-├── cv/                        # Computer Vision Package
-│   ├── utils.py               # Shared contours & cropping helpers
+├── cv/                        
+│   ├── utils.py               # Helpers
 │   ├── lane_detector.py       # Hough line lane boundary API
 │   ├── background_contour.py  # Noise baseline estimator
-│   ├── vehicle_counter.py     # Contour-based vehicle counting script
+│   ├── vehicle_counter.py     # Contour based vehicle counting script
 │   └── yolo_counter.py        # YOLOv8 object detection counter
-├── rl/                        # Reinforcement Learning Package
-│   ├── train_dqn.py           # SB3 DQN training script
-│   ├── test_dqn.py            # SUMO-GUI evaluation script
-│   └── saved_models/          # Trained model .zip archives
-├── sumo/                      # SUMO Simulation Assets
-│   ├── kingcircle.sumocfg     # Active SUMO simulation config
+├── rl/                        
+│   ├── train_dqn.py           # DQN training script
+│   ├── test_dqn.py            # Evaluation script
+│   └── saved_models/          
+├── sumo/                      
 │   └── maps/                  # Network & route XML files
-├── notebooks/                 # Research Jupyter notebooks
-├── docs/                      # Presentation slides & PDFs
-├── smart_flow.tex             # Complete LaTeX Technical Specification
-├── WORKFLOW.md                # Step-by-step setup & execution guide
+├── notebooks/                 # Jupyter notebooks
+├── docs/                      
+├── WORKFLOW.md                # Step by step setup & execution guide
 └── README.md
 ```
 
----
 
 ## Quick Start & Setup
 
@@ -124,9 +116,7 @@ python3 -m rl.train_dqn
 python3 -m rl.test_dqn
 ```
 
-For complete workflow details, see [WORKFLOW.md](file:///home/meekhumor/AI-Based-Traffic-Signal-Control-System/WORKFLOW.md).
-
----
+For complete workflow details, see [WORKFLOW.md](https://github.com/meekhumor/AI-Based-Traffic-Signal-Control-System/blob/main/WORKFLOW.md).
 
 ## Core Technologies
 
@@ -163,8 +153,6 @@ For complete workflow details, see [WORKFLOW.md](file:///home/meekhumor/AI-Based
 
 ## Key Results
 
-### Efficiency Improvements
-
 <table>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/66402c78-e044-4088-970a-7b948c3db006" alt="wait-time-reduction" width="650"></td>
@@ -174,7 +162,7 @@ For complete workflow details, see [WORKFLOW.md](file:///home/meekhumor/AI-Based
   </tr>
 </table>
 
-## Real-world Impact
+## Real world Impact
 
 ### Environmental Benefits
 * **Reduced Emissions**: 18% reduction in CO2 emissions from decreased idling time
@@ -207,4 +195,3 @@ For complete workflow details, see [WORKFLOW.md](file:///home/meekhumor/AI-Based
 | Abhishek Kotwani | [GitHub](https://github.com/Abhi-sheKkK) |
 | Aryan Yadav | [GitHub](https://github.com/Aryan-y-77) |
 
----
