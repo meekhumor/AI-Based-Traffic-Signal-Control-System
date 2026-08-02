@@ -5,7 +5,7 @@
 </p>
 
 <div align="center">
-  <strong>Revolutionizing urban traffic management through AI-driven intelligent traffic light control systems that adapt to real time congestion patterns, reducing wait times and emissions while enhancing city mobility.</strong>
+  <strong>Revolutionizing urban traffic management through AI driven intelligent traffic light control systems that adapt to real time congestion patterns, reducing wait times and emissions while enhancing city mobility.</strong>
 </div>
 
 <br />
@@ -35,17 +35,26 @@ In India's rapidly growing cities, traffic intersections have become critical bo
 
 **Vehicle Count Detection**
 
-https://github.com/user-attachments/assets/84eb35d4-ce2e-4db9-9734-502bc9cbacee
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/84eb35d4-ce2e-4db9-9734-502bc9cbacee" width="350" controls></video>
+</p>
 
-<img src="https://github.com/user-attachments/assets/a452e21f-c295-42d1-bf9e-40dc430030e7" width="600" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a452e21f-c295-42d1-bf9e-40dc430030e7" width="350" />
+</p>
 
 <hr />
 
 **Reinforcement Learning**
 
-https://github.com/user-attachments/assets/444ece30-dcd7-4607-8d53-4da42c7d65ba
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/444ece30-dcd7-4607-8d53-4da42c7d65ba" width="350" controls></video>
+</p>
 
-https://github.com/user-attachments/assets/e88b2391-1fb8-4e7a-8a19-c6cf92b9dc3e
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/e88b2391-1fb8-4e7a-8a19-c6cf92b9dc3e" width="350" controls></video>
+</p>
+
 
 <br />
 
@@ -115,8 +124,6 @@ python3 -m rl.train_dqn
 ```bash
 python3 -m rl.test_dqn
 ```
-
-For complete workflow details, see [WORKFLOW.md](https://github.com/meekhumor/AI-Based-Traffic-Signal-Control-System/blob/main/WORKFLOW.md).
 
 ## Core Technologies
 
