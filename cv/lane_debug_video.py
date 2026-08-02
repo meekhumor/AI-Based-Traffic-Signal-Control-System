@@ -85,41 +85,42 @@ while cap.isOpened():
     red_line = stored_lines['red']
     green_line = stored_lines['green']
 
+    rx1, ry1, rx2, ry2 = 0, 0, 0, 0
+    rmx, rmy = 0, 0
     if red_line:
         x1, y1, x2, y2 = red_line
-        rx1, ry1, rx2, ry2 = extend_line(x1, y1, x2, y2, width, height)  
-        cv2.line(frame, (rx1, ry1), (rx2, ry2), (0, 0, 255), 3)  
-        rmx, rmy = int((rx1 + rx2) / 2), int((ry1 + ry2) / 2)
+        ext = extend_line(x1, y1, x2, y2, width, height)
+        if ext:  
+            rx1, ry1, rx2, ry2 = ext
+            cv2.line(frame, (rx1, ry1), (rx2, ry2), (0, 0, 255), 3)  
+            rmx, rmy = int((rx1 + rx2) / 2), int((ry1 + ry2) / 2)
 
+    px, py = rmx, rmy
     if blue_line:
         x1, y1, x2, y2 = blue_line
-        bx1, by1, bx2, by2 = extend_line(x1, y1, x2, y2, width, height)  
-        intersection = get_line_intersection(bx1, by1, bx2, by2, rx1, ry1, rx2, ry2)
-        if intersection:
-            ix, iy = intersection
-            px, py = int((ix + rmx) / 2), int((iy + rmy) / 2)
-            if bx1 < bx2:
-                left = (bx1, by1)
-            else:
-                left = (bx2, by2)
-            
+        ext = extend_line(x1, y1, x2, y2, width, height)  
+        if ext:
+            bx1, by1, bx2, by2 = ext
+            intersection = get_line_intersection(bx1, by1, bx2, by2, rx1, ry1, rx2, ry2)
+            if intersection:
+                ix, iy = intersection
+                px, py = int((ix + rmx) / 2), int((iy + rmy) / 2)
+            left = (bx1, by1) if bx1 < bx2 else (bx2, by2)
             cv2.line(frame, left, (px, py), (255, 0, 0), 3) 
             cv2.circle(frame, (px, py), 6, (255, 255, 255), -1)
 
     if green_line:
         x1, y1, x2, y2 = green_line
-        gx1, gy1, gx2, gy2 = extend_line(x1, y1, x2, y2, width, height)  
-        if gx1 > gx2:
-            right = (gx1, gy1)
-        else:
-            right = (gx2, gy2)
-        
-        cv2.line(frame, right, (px, py), (0, 255, 0), 3)
+        ext = extend_line(x1, y1, x2, y2, width, height)  
+        if ext:
+            gx1, gy1, gx2, gy2 = ext
+            right = (gx1, gy1) if gx1 > gx2 else (gx2, gy2)
+            cv2.line(frame, right, (px, py), (0, 255, 0), 3)
 
     cv2.imshow('Lane Detection', frame)
     frame_count += 1
 
-    if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to exit
+    if cv2.waitKey(1) & 0xFF == 27: 
         break
 
 cap.release()

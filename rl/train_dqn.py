@@ -1,13 +1,15 @@
+import os
+import uuid
 import traci
 import numpy as np
 from gymnasium import Env
 from gymnasium.spaces import Discrete, Box
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
-import uuid
+
 
 class TrafficLightEnv(Env):
-    def __init__(self, config_file, max_steps=1000):
+    def __init__(self, config_file="sumo/kingcircle.sumocfg", max_steps=1000):
         super().__init__()
         self.config_file = config_file
         self.max_steps = max_steps
@@ -15,7 +17,6 @@ class TrafficLightEnv(Env):
         self.connection_label = str(uuid.uuid4())
         self.is_connected = False
         
-        # Initialize traffic lights and lanes in __init__
         self.tl_ids = []
         self.controlled_lanes = {}
         traci.start(["sumo", "-c", self.config_file, "--no-step-log", "true"], label=self.connection_label)
@@ -29,14 +30,12 @@ class TrafficLightEnv(Env):
             lanes = traci.trafficlight.getControlledLanes(tl_id)
             self.controlled_lanes[tl_id] = list(dict.fromkeys(lanes))
         
-        # Define spaces
         self.action_space = Discrete(3)  # 0: extend green, 1: switch phase, 2: keep
         obs_size = sum(len(lanes) for lanes in self.controlled_lanes.values()) + 2 * len(self.tl_ids)
         self.observation_space = Box(low=0, high=1000, shape=(obs_size,), dtype=np.float32)
         
         print("Traffic Lights:", self.tl_ids)
         print("Controlled Lanes:", self.controlled_lanes)
-        # print("Observation Size:", obs_size)
         
         traci.close()
         self.is_connected = False
@@ -52,7 +51,6 @@ class TrafficLightEnv(Env):
             traci.start(["sumo", "-c", self.config_file, "--no-step-log", "true"], label=self.connection_label)
             self.is_connected = True
             traci.simulationStep()
-            # print("Available lanes:", traci.lane.getIDList())
             self.step_count = 0
             obs = self._get_state()
             return obs, {}
@@ -114,9 +112,12 @@ class TrafficLightEnv(Env):
     def __del__(self):
         self.close()
 
+
 if __name__ == "__main__":
-    # Initialize and train
-    config_file = "intersection.sumocfg"
+    config_file = "sumo/kingcircle.sumocfg"
+    if not os.path.exists(config_file) and os.path.exists("intersection.sumocfg"):
+        config_file = "intersection.sumocfg"
+
     env = TrafficLightEnv(config_file)
     try:
         print("Running environment check...")
@@ -124,7 +125,8 @@ if __name__ == "__main__":
         print("Environment check passed. Starting training...")
         model = DQN("MlpPolicy", env, verbose=1)
         model.learn(total_timesteps=10000)
-        model.save("models/traffic_light_dqn")
+        os.makedirs("rl/saved_models", exist_ok=True)
+        model.save("rl/saved_models/traffic_light_dqn")
     finally:
         print("Cleaning up...")
         env.close()

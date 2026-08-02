@@ -1,0 +1,1010 @@
+\documentclass[10pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.60in, top=0.72in, bottom=0.72in]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{multicol}
+\usepackage{mdframed}
+\usepackage[hidelinks]{hyperref}
+
+% --- Monochromatic Color Palette ---
+\definecolor{monodark}{HTML}{111111}
+\definecolor{monomedium}{HTML}{3A3A3A}
+\definecolor{monolight}{HTML}{666666}
+\definecolor{monoline}{HTML}{CCCCCC}
+\definecolor{monoshade}{HTML}{F0F0F0}
+\definecolor{monobox}{HTML}{E8E8E8}
+
+% --- Typography & Spacing ---
+\setlist[itemize]{noitemsep, topsep=2pt, leftmargin=14pt}
+\setlist[enumerate]{noitemsep, topsep=2pt, leftmargin=14pt}
+\emergencystretch=4em
+
+% --- Code Box Style ---
+\newmdenv[
+  backgroundcolor=monoshade,
+  linecolor=monoline,
+  linewidth=0.5pt,
+  topline=true,
+  bottomline=true,
+  leftline=true,
+  rightline=true,
+  innerleftmargin=6pt,
+  innerrightmargin=6pt,
+  innertopmargin=4pt,
+  innerbottommargin=4pt,
+  skipabove=4pt,
+  skipbelow=4pt,
+]{codebox}
+
+% --- Section Headers ---
+\titleformat{\section}
+  {\color{monodark}\large\bfseries}
+  {\thesection.}{0.5em}{}
+  [\color{monoline}\titlerule]
+
+\titleformat{\subsection}
+  {\color{monomedium}\normalsize\bfseries}
+  {\thesubsection}{0.5em}{}
+
+\titleformat{\subsubsection}
+  {\color{monolight}\small\bfseries\itshape}
+  {}{0em}{}
+
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{7pt}{2pt}
+\titlespacing*{\subsubsection}{0pt}{5pt}{1pt}
+
+% --- Header and Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small\color{monolight} VIRTUAL AI --- DETAILED TECHNICAL SPECIFICATION}
+\rhead{\small\color{monolight} AUGUST 2026}
+\lfoot{\small\color{monolight} Om Mukherjee, Aryan Yadav, Aman Vatsa}
+\rfoot{\small\color{monolight} Page \thepage}
+
+% =============================================================
+\begin{document}
+% =============================================================
+
+% ---- TITLE BLOCK ----
+\begin{center}
+  {\Huge\bfseries\color{monodark} Virtual AI}\\[5pt]
+  {\large\itshape\color{monomedium}
+    Real-Time AI-Powered Interview Simulator, Evaluator \& NLP Analytics Platform
+  }\\[9pt]
+  \noindent\rule{\linewidth}{1.2pt}\\[6pt]
+  {\small
+    \textbf{Authors:} Om Mukherjee \quad Aryan Yadav \quad Aman Vatsa
+    \quad\textbullet\quad
+    \textbf{Mentors:} Harshala Mahajan \quad Sayali Khandare
+  }\\[3pt]
+  {\small\color{monolight}
+    \url{https://github.com/meekhumor/virtual_interviewer}
+    \quad $|$ \quad
+    \url{https://usevirtual-ai.vercel.app}
+    \quad $|$ \quad
+    Backend: \url{https://virtual-ai-iimu.onrender.com}
+  }\\[8pt]
+  \noindent\rule{\linewidth}{0.5pt}
+\end{center}
+
+% ---- ABSTRACT ----
+\noindent\textbf{Abstract.}\quad
+Virtual AI is a production deployed, full stack AI interview preparation
+platform built to simulate realistic technical and behavioural job interviews
+through a real-time conversational interface. It combines a React 18 frontend
+with a Django REST Framework + Django Channels ASGI backend, a LangGraph
+ReAct agent using Google Gemini 2.0 Flash (with automated Groq Llama-3.3-70B
+failover), WebRTC video capture, browser Speech-to-Text and Text-to-Speech
+synthesis, an embedded Monaco code editor, resume PDF parsing via
+\texttt{pdfplumber}, and a comprehensive post-interview NLP analytics engine.
+This document provides a full technical specification: system architecture,
+API reference, database schema, agent design, authentication mechanisms,
+real-time communication, interview lifecycle, frontend state management, and
+engineering challenges.
+
+\vspace{6pt}
+\noindent\rule{\linewidth}{0.4pt}
+\vspace{4pt}
+
+% ---- SWITCH TO TWO-COLUMN BODY ----
+\raggedcolumns
+\begin{multicols}{2}
+
+% ==========================================
+\section{Introduction \& Motivation}
+% ==========================================
+
+Technical job interviews test a unique intersection of domain knowledge,
+live problem-solving, articulate communication, and composure under
+pressure. Candidates frequently cite interview anxiety and lack of realistic
+practice as their primary barriers to success.
+
+Traditional mock interview tools fall short in several ways: they rely on
+static question banks, lack contextual follow-up, provide no voice
+interaction, and fail to deliver personalized feedback grounded in the
+candidate's own resume. Virtual AI was designed to close every one of these
+gaps.
+
+\subsection{Project Goals}
+\begin{enumerate}
+  \item Simulate a real human interviewer through an AI agent that listens,
+        evaluates, and dynamically follows up.
+  \item Support both \textbf{Practice Mode} (constructive, encouraging) and
+        \textbf{Real Mode} (neutral, strict panel format).
+  \item Generate meaningful, multi-dimensional performance feedback rather
+        than a simple pass/fail score.
+  \item Support full multimodal input: voice, typed text, and live code.
+  \item Record video responses for self-review.
+  \item Allow candidate resume upload to personalise question generation.
+\end{enumerate}
+
+% ==========================================
+\section{Complete Technology Stack}
+% ==========================================
+
+\begin{center}
+\small\color{monodark}
+\begin{tabular}{@{}p{1.8cm} p{4.5cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Technology} \\
+\midrule
+Frontend     & React 18, Vite, Tailwind CSS, React Router v6 \\
+UI Libraries & Lucide React, Lottie Web, react-draggable \\
+Voice        & Web Speech STT, \texttt{speechSynthesis} TTS \\
+Code Editor  & \texttt{@monaco-editor/react} \\
+Video        & WebRTC, MediaRecorder API (\texttt{.webm}) \\
+WebSocket    & Native \texttt{WebSocket} API (custom hook) \\
+Backend      & Python 3.10, Django 5.x, DRF, Channels \\
+ASGI Server  & Daphne / Uvicorn \\
+AI Framework & LangGraph, LangChain \\
+LLMs         & Gemini 2.0 Flash (primary), Groq Llama-3.3-70B \\
+Auth         & Supabase Auth (JWT) \\
+Database     & PostgreSQL (Supabase-managed) \\
+Storage      & Supabase Storage (S3-compatible) \\
+PDF Parsing  & \texttt{pdfplumber} \\
+Testing      & pytest-django, pytest-asyncio, channels.testing \\
+Hosting      & Vercel (frontend), Render (backend) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================
+\section{High-Level System Architecture}
+% ==========================================
+
+The system follows a \textit{decoupled client-server} model with two distinct
+communication channels operating in parallel:
+
+\subsubsection{Channel 1 --- HTTP REST (stateless)}
+All resource management operations (auth, resume upload, interview
+creation, analytics retrieval) use authenticated HTTP REST endpoints under
+\texttt{/api/}. Requests carry a Supabase JWT in the \texttt{Authorization}
+header.
+
+\subsubsection{Channel 2 --- WebSocket (stateful, real-time)}
+The live interview conversation uses a persistent WebSocket connection to
+\texttt{ws://host/ws/interview/<id>/?token=<jwt>}. The JWT is passed as a
+query parameter because the browser \texttt{WebSocket} constructor does not
+support custom headers.
+
+\subsubsection{Data Flow Summary}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+[Browser]
+  |-- HTTP POST /api/interviews/start/ -->
+  |<- {interview_id, ws_url} ----------
+  |
+  |-- WebSocket (ws_url?token=...) ---->
+  |<- {connected}                 -----
+  |<- {agent_response, question}  -----
+  |-- {user_message, text, code}  ---->
+  |<- {agent_response, feedback}  -----
+  ...
+  |-- HTTP PATCH /api/interviews/N/status/
+  |-- Navigate to /review/N
+\end{verbatim}
+\end{codebox}
+
+% ==========================================
+\section{Authentication System}
+% ==========================================
+
+\subsection{Supabase JWT Authentication (REST)}
+Class: \texttt{SupabaseJWTAuthentication}
+(\texttt{api/auth.py}).
+
+For every protected REST endpoint, the middleware:
+\begin{enumerate}
+  \item Extracts the Bearer token from the \texttt{Authorization} header.
+  \item Calls \texttt{supabase.auth.get\_user(token)} to validate the JWT
+        against Supabase's remote auth service.
+  \item Looks up the corresponding \texttt{User} record by \texttt{supabase\_id}
+        in the local PostgreSQL database.
+  \item Returns \texttt{(django\_user, token)} to DRF's permission system.
+\end{enumerate}
+
+\subsection{WebSocket JWT Middleware}
+Class: \texttt{TokenAuthMiddleware}
+(\texttt{api/auth.py}).
+
+ASGI middleware wrapping every WebSocket connection:
+\begin{enumerate}
+  \item Parses the query string: \texttt{?token=<jwt>}.
+  \item Validates via \texttt{sync\_to\_async(supabase.auth.get\_user)}.
+  \item Populates \texttt{scope["user"]} before the consumer handles the
+        connection.
+  \item Sets \texttt{scope["user"] = AnonymousUser()} on any failure,
+        causing \texttt{InterviewConsumer} to reject the connection.
+\end{enumerate}
+
+\subsection{Guest Session System}
+Endpoint: \texttt{POST /api/guest-login/}
+\begin{itemize}
+  \item Generates a UUID, creates a local \texttt{User} record with email
+        \texttt{guest\_<uuid>@virtualai.local} and a matching
+        \texttt{supabase\_id}.
+  \item Returns token format: \texttt{guest\_token\_<uuid>}.
+  \item Auth middleware recognises the \texttt{guest\_token\_} prefix and
+        bypasses Supabase validation, looking up the user by
+        \texttt{supabase\_id} directly.
+  \item \textbf{Cleanup}: On every new guest login, all guest accounts older
+        than 12 hours are deleted atomically before creating the new session.
+\end{itemize}
+
+% ==========================================
+\section{Database Schema}
+% ==========================================
+
+\subsection{User Model}
+Extends \texttt{AbstractBaseUser} + \texttt{PermissionsMixin}. Login field
+is \texttt{email} (not username). Key fields:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Notes \\
+\midrule
+\texttt{email} & \texttt{unique=True}, login identifier \\
+\texttt{username} & \texttt{unique=True}, display name \\
+\texttt{supabase\_id} & UUID linking to Supabase Auth \\
+\texttt{profile\_image\_url} & Supabase Storage public URL \\
+\texttt{is\_active / is\_staff} & Standard Django flags \\
+\texttt{created\_at} & Auto-set on creation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Resume Model}
+One user may have many resumes; the most recently created is always used
+for AI context injection.
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Notes \\
+\midrule
+\texttt{user} & FK $\to$ User, CASCADE \\
+\texttt{file\_url} & Supabase Storage public URL \\
+\texttt{parsed\_text} & Up to 3,000 chars, extracted by \texttt{pdfplumber} \\
+\texttt{created\_at} & Used for ``most recent'' ordering \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Interview Model}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Notes \\
+\midrule
+\texttt{user} & FK $\to$ User \\
+\texttt{title} & Default ``General Interview'' \\
+\texttt{level} & ENTRY / INTERMEDIATE / SENIOR \\
+\texttt{mode} & REAL / PRACTICE \\
+\texttt{duration\_seconds} & Set at start; updated at end \\
+\texttt{status} & PENDING $\to$ IN\_PROGRESS $\to$ COMPLETED \\
+\texttt{scheduled\_at} & Timestamp of start call \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Question Model}
+Each interview has an ordered sequence of questions, created progressively
+throughout the session. \texttt{order} starts at 1 and increments with
+each AI follow-up.
+
+\subsection{Response Model}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Notes \\
+\midrule
+\texttt{interview / question} & FKs linking the turn \\
+\texttt{text} & Candidate's answer text \\
+\texttt{ai\_feedback} & 2--3 sentence AI evaluation \\
+\texttt{video\_url} & Supabase Storage URL (\texttt{.webm}) \\
+\texttt{agent\_metadata} & JSON, stores \texttt{\{"score": 7\}} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{InterviewAnalysis Model}
+A cached, one-to-one post-interview report:
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Notes \\
+\midrule
+\texttt{overall\_score} & Float 0--10 \\
+\texttt{communication\_score} & Float 0--10 \\
+\texttt{technical\_score} & Float 0--10 \\
+\texttt{confidence\_score} & Float 0--10 \\
+\texttt{pace\_wpm} & Estimated WPM (float) \\
+\texttt{filler\_word\_count} & Integer count \\
+\texttt{power\_word\_count} & Integer count \\
+\texttt{strengths} & JSON list of strings \\
+\texttt{improvements} & JSON list of strings \\
+\texttt{summary} & 2--3 sentence prose summary \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Entity Relationship}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+User --|<-- Resume (many)
+User --|<-- Interview (many)
+         |-- Question (many, ordered)
+         |     |-- Response (one)
+         |-- InterviewAnalysis (one)
+\end{verbatim}
+\end{codebox}
+
+% ==========================================
+\section{REST API Endpoint Reference}
+% ==========================================
+
+All endpoints are prefixed with \texttt{/api/}.
+Protected endpoints require \texttt{Authorization: Bearer <token>}.
+
+\begin{center}
+\scriptsize
+\begin{tabular}{@{}p{0.4cm} p{3.3cm} p{2.6cm}@{}}
+\toprule
+\textbf{M} & \textbf{Endpoint} & \textbf{Description} \\
+\midrule
+POST & \texttt{signup/} & Register; triggers Supabase email confirmation \\
+POST & \texttt{login/} & Supabase sign-in, returns JWT \\
+POST & \texttt{guest-login/} & Create ephemeral guest session \\
+\midrule
+GET  & \texttt{profile/} & Return email, username, avatar URL \\
+PATCH& \texttt{profile/update/} & Update username \\
+POST & \texttt{profile/image/} & Upload avatar to Supabase bucket \\
+GET  & \texttt{profile/stats/} & Totals: interviews, time, avg score \\
+\midrule
+GET  & \texttt{resume/upload/} & Check for existing resume \\
+POST & \texttt{resume/upload/} & Upload PDF; parse + cache text \\
+\midrule
+POST & \texttt{interviews/start/} & Create interview record + first Q \\
+GET  & \texttt{interviews/} & List all interviews (ordered by date) \\
+GET  & \texttt{interviews/<id>/} & Full detail with Q\&A \\
+DEL  & \texttt{interviews/<id>/} & Delete an interview \\
+PATCH& \texttt{interviews/<id>/status/} & Update status + duration \\
+POST & \texttt{interviews/<id>/analyze/} & Generate + cache analysis \\
+GET  & \texttt{interviews/<id>/analysis/} & Retrieve cached analysis \\
+POST & \texttt{interviews/<id>/q/<q>/response/} & HTTP fallback submit \\
+POST & \texttt{interviews/video/upload/} & Upload \texttt{.webm} clip \\
+\midrule
+POST & \texttt{contact/} & Log contact inquiry (no auth required) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================
+\section{LLM Utility Layer}
+% ==========================================
+
+\subsection{\texttt{\_call\_llm()} (REST Views)}
+A thin synchronous helper used by all non-WebSocket LLM calls:
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+def _call_llm(prompt, max_output_tokens=500):
+    try:
+        return gemini_client.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt, ...
+        ).text.strip()
+    except Exception:
+        return groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role":"user","content":prompt}],
+        ).choices[0].message.content.strip()
+\end{verbatim}
+\end{codebox}
+Used by: \texttt{StartInterviewView}, \texttt{SubmitResponseView}
+(HTTP fallback), and \texttt{InterviewAnalysisView}.
+
+\subsection{\texttt{\_get\_resume\_text(user)}}
+Fetches the \texttt{parsed\_text} of the user's most recent
+\texttt{Resume} record, truncated to 3,000 characters.
+Called at the start of every LLM prompt to provide candidate context.
+
+% ==========================================
+\section{Real-Time WebSocket Agent}
+% ==========================================
+
+\subsection{Consumer Lifecycle}
+Class: \texttt{InterviewConsumer}
+(\texttt{api/consumers.py}).
+
+\textbf{On \texttt{connect()}:}
+\begin{enumerate}
+  \item Validate interview ownership with \texttt{\_validate\_interview()}.
+  \item Accept the WebSocket.
+  \item Load interview metadata (level, mode) and resume text.
+  \item Instantiate \texttt{ChatGoogleGenerativeAI} (Gemini) and
+        \texttt{ChatGroq} (fallback). Both are stored on \texttt{self} for
+        per-session persistence.
+  \item Build the structured system prompt.
+  \item Call \texttt{create\_react\_agent(llm, [save\_interview\_turn],
+        prompt=system\_prompt)} to create the LangGraph agent.
+  \item Send \texttt{\{"type":"connected"\}} to the client.
+  \item If the interview already has a question (e.g., session resumed),
+        immediately deliver it; otherwise call
+        \texttt{\_generate\_first\_question()}.
+\end{enumerate}
+
+\textbf{On \texttt{receive()}:}
+\begin{enumerate}
+  \item Parse incoming JSON; reject non-\texttt{user\_message} types silently.
+  \item Assemble \texttt{agent\_input} with the full message history,
+        recent history summary (last 5 turns), level/mode context, and the
+        candidate's text.
+  \item Call \texttt{\_invoke\_with\_fallback(agent\_input)}.
+  \item Update \texttt{self.messages} with the returned message list for
+        next-turn context.
+  \item If a \texttt{video\_url} was included, update the latest
+        \texttt{Response} record asynchronously.
+  \item Send the final AI message text as \texttt{\{"type":"agent\_response"\}}.
+\end{enumerate}
+
+\textbf{On \texttt{disconnect():}}
+Logs the close code for monitoring. No cleanup required as all state was
+persisted at each turn by the agent tool.
+
+\subsection{System Prompt Architecture}
+The system prompt enforces a strict \textbf{four-step cognitive loop} per
+candidate turn:
+
+\textbf{Step 1 --- Evaluate.} Internally assess: technical accuracy,
+concept depth, communication clarity, and relevance. Assign score 1--10.
+Note one or two specific strengths/weaknesses.
+
+\textbf{Step 2 --- Formulate.} Generate ONE focused follow-up question:
+\begin{itemize}
+  \item Must build on what the candidate just said.
+  \item Must probe a weakness or unexplored concept.
+  \item Must match the level: ENTRY = concept understanding; INTERMEDIATE
+        = applied problem solving; SENIOR = system design, trade-offs.
+\end{itemize}
+
+\textbf{Step 3 --- Act.} Call \texttt{save\_interview\_turn} exactly once
+with: \texttt{candidate\_response}, \texttt{feedback}, \texttt{next\_question}
+(no preamble), and \texttt{score}.
+
+\textbf{Step 4 --- Speak.} Reply to the candidate in $\le$35 words:
+\texttt{[Optional brief acknowledgement]. [Next question]}.
+
+\textbf{Tone:}
+\begin{itemize}
+  \item REAL mode: professional, neutral, no excessive praise.
+  \item PRACTICE mode: warm, honest, constructive, encouraging.
+\end{itemize}
+
+\subsection{LangGraph ReAct Tool: \texttt{save\_interview\_turn}}
+
+This is the bridge between the agent and the database. Decorated with
+\texttt{@tool} (LangChain), called asynchronously by the agent. It
+delegates to \texttt{\_save\_turn\_to\_db()} which wraps all writes in
+\texttt{transaction.atomic()}:
+\begin{enumerate}
+  \item Fetch the current interview's highest-order \texttt{Question}.
+  \item Create a \texttt{Response} linked to that question with the
+        candidate text, AI feedback, score, and an empty \texttt{video\_url}
+        (updated later if video was recorded).
+  \item Create the \texttt{next\_question} record at order $+1$.
+\end{enumerate}
+Both writes are atomic: either both succeed or neither does.
+
+Tool signature:
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+async def save_interview_turn(
+    interview_id: str,
+    candidate_response: str,
+    feedback: str,
+    next_question: str,   # question text ONLY
+    score: int = None
+) -> str
+\end{verbatim}
+\end{codebox}
+
+\subsection{Zero-Downtime LLM Failover}
+Method: \texttt{\_invoke\_with\_fallback(agent\_input)}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+try:
+    return await self.agent.ainvoke(agent_input)
+except Exception as e:
+    # Rebuild agent with Groq
+    fallback_agent = create_react_agent(
+        self.llm_fallback,
+        [save_interview_turn],
+        prompt=self.system_prompt
+    )
+    result = await fallback_agent.ainvoke(agent_input)
+    # Persist for subsequent turns in this session
+    self.agent = fallback_agent
+    self.llm = self.llm_fallback
+    return result
+\end{verbatim}
+\end{codebox}
+This means the user never sees an error if Gemini goes down mid-session;
+the swap is transparent and the conversation continues uninterrupted.
+
+% ==========================================
+\section{Resume Processing Pipeline}
+% ==========================================
+
+\subsubsection{Upload Flow}
+\begin{enumerate}
+  \item Client sends \texttt{multipart/form-data} to
+        \texttt{POST /api/resume/upload/}.
+  \item Backend reads file bytes into memory.
+  \item Uploads raw bytes to Supabase Storage bucket \texttt{resumes/}
+        at path \texttt{resumes/<supabase\_id>/<filename>}.
+  \item Retrieves the public URL via \texttt{get\_public\_url()}.
+  \item Passes bytes to \texttt{pdfplumber.open(BytesIO(file\_bytes))}.
+        Joins extracted text from all pages; truncates to 3,000 characters.
+  \item Creates a \texttt{Resume} database record with both the URL and the
+        cached plaintext.
+\end{enumerate}
+
+\subsubsection{Context Injection}
+At interview start and at each WebSocket connection, \texttt{\_get\_resume\_text()}
+fetches the most recent \texttt{Resume.parsed\_text} for the user and
+injects it directly into the LLM system prompt:
+
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+"Candidate resume summary: {resume_text[:3000]}"
+\end{verbatim}
+\end{codebox}
+
+This allows the AI agent to ask targeted questions about the candidate's
+actual stack, projects, and experience rather than generic questions.
+
+% ==========================================
+\section{Interview Lifecycle (End-to-End)}
+% ==========================================
+
+\begin{enumerate}
+  \item User selects \textbf{Interview Setting}: level (Internship / Entry
+        / Mid / Management) $\to$ mapped to backend enum (ENTRY / ENTRY /
+        INTERMEDIATE / SENIOR), duration (20/30/45/60 min), and mode
+        (PRACTICE / REAL). Settings stored in \texttt{sessionStorage}.
+  \item User uploads or skips resume on \texttt{/resume}.
+  \item \texttt{/cam-permission} requests camera and microphone access.
+  \item \texttt{/cam-preview1} or \texttt{/cam-preview2} lets the user
+        test their setup, including a live mic test via Web Speech STT.
+  \item \texttt{/interview-simulator} is loaded. On ``Start'', it calls
+        \texttt{POST /api/interviews/start/} which creates the
+        \texttt{Interview} record and generates the opening question via
+        \texttt{\_call\_llm()}. The response includes \texttt{ws\_url}.
+  \item The custom hook \texttt{useInterviewWS(ws\_url, ...)} opens a
+        WebSocket with the JWT token. The agent delivers the first question
+        over TTS.
+  \item For each turn:
+    \begin{itemize}
+      \item STT transcribes speech in real time.
+      \item Silence detection (configurable timeout) or manual submit
+            triggers response submission.
+      \item In REAL mode, \texttt{MediaRecorder} captures a \texttt{.webm}
+            clip, uploaded via \texttt{POST /api/interviews/video/upload/}.
+      \item The WebSocket message includes the text and optionally
+            \texttt{video\_url} and \texttt{code}.
+      \item The agent evaluates, calls the tool, and responds.
+    \end{itemize}
+  \item When time runs out (countdown reaches 0) or the user clicks
+        ``End'', \texttt{endInterview()} is called:
+        cancels TTS, stops STT, stops MediaRecorder, closes WebSocket,
+        calls \texttt{PATCH .../status/} with \texttt{COMPLETED} and the
+        elapsed \texttt{duration\_seconds}, exits fullscreen, and navigates
+        to \texttt{/review/<interview\_id>}.
+\end{enumerate}
+
+% ==========================================
+\section{Frontend Architecture}
+% ==========================================
+
+\subsection{Routing (\texttt{App.jsx})}
+React Router v6 with a \texttt{<Layout>} wrapper. Protected routes are
+gated by \texttt{<ProtectedRoute>} which checks for a valid token in
+\texttt{localStorage} and redirects to \texttt{/register} if absent.
+
+Key routes:
+\begin{center}
+\scriptsize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Path & Component \\
+\midrule
+\texttt{/} & Animation landing page \\
+\texttt{/home} & Full marketing landing page \\
+\texttt{/dashboard} & Interview type selection + stats \\
+\texttt{/interview-setting} & Level / duration / mode picker \\
+\texttt{/resume} & Upload or skip resume \\
+\texttt{/cam-permission} & Media permissions gate \\
+\texttt{/cam-preview1} & Mic test + camera preview \\
+\texttt{/interview-simulator} & Live interview session \\
+\texttt{/review-interview} & List of all past interviews \\
+\texttt{/review/:id} & Q\&A transcript + video playback \\
+\texttt{/analysis} & NLP analytics dashboard \\
+\texttt{/profile} & User profile edit \\
+\texttt{/domain} & Job-based interview selector \\
+\texttt{/courses} & Curated learning resources \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{WebSocket Hook: \texttt{useInterviewWS}}
+Encapsulates the entire WebSocket lifecycle in a reusable hook:
+\begin{itemize}
+  \item Opens a \texttt{new WebSocket(url + "?token=" + jwt)} when
+        \texttt{wsUrl} becomes non-null.
+  \item Dispatches parsed JSON to the correct callback:
+        \texttt{onMessage} for \texttt{agent\_response},
+        \texttt{onError} for \texttt{error} frames.
+  \item Exposes \texttt{sendMessage(obj)}, \texttt{isConnected},
+        and \texttt{closeWS()}.
+  \item Cleanup closes the socket on unmount or URL change.
+\end{itemize}
+
+\subsection{Interview Simulator State Machine}
+The component (\texttt{Interview\_Simulator.jsx}, 1028 lines) manages a
+complex state machine via \texttt{useState} and \texttt{useEffect}
+combinations:
+
+\begin{center}
+\scriptsize
+\begin{tabular}{@{}ll@{}}
+\toprule
+State & Purpose \\
+\midrule
+\texttt{aiSpeaking} & TTS active; blocks STT \\
+\texttt{userSpeaking} & STT transcript changing \\
+\texttt{waitingForUser} & AI has finished; STT auto-starts \\
+\texttt{processing} & Message sent; awaiting agent reply \\
+\texttt{isConnected} & WebSocket open \\
+\texttt{timeLeft} & Countdown in seconds \\
+\texttt{isRunning} & Timer active \\
+\texttt{transcriptHistory} & Array of \{sender, text\} turn log \\
+\texttt{webcamStream} & \texttt{MediaStream} object \\
+\texttt{showCodeEditor} & Monaco drawer toggle \\
+\texttt{showChat} & Chat transcript panel toggle \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{TTS Voice Selection}
+\texttt{getPreferredVoice()} iterates the browser's \texttt{speechSynthesis}
+voice list in descending preference order:
+Google US/UK English $\to$ Samantha/Siri/Daniel $\to$ Microsoft David/Zira
+$\to$ any \texttt{en-US}/\texttt{en-GB} voice $\to$ any English voice.
+
+\subsubsection{Silence Detection}
+A configurable \texttt{silenceTimeout} (stored in \texttt{sessionStorage})
+triggers auto-submit after the transcript stops changing. Setting it to 0
+disables auto-submit (manual mode). The timer resets on each transcript
+update.
+
+\subsubsection{WebRTC Video Recording (REAL Mode)}
+\begin{enumerate}
+  \item \texttt{getUserMedia(\{video: true, audio: true\})} when
+        \texttt{waitingForUser} becomes true.
+  \item \texttt{MediaRecorder} is started with
+        \texttt{video/webm;codecs=vp9,opus}, falling back to the browser
+        default.
+  \item Chunks are pushed to \texttt{recordedChunksRef} every 1 second.
+  \item On submit, \texttt{stopMediaRecorder()} assembles a \texttt{Blob},
+        which is uploaded to \texttt{POST /api/interviews/video/upload/}.
+  \item The returned Supabase URL is sent in the WebSocket message.
+\end{enumerate}
+
+\subsection{Visual Feedback Components}
+\subsubsection{\texttt{WaveBar}}
+Five animated vertical bars that oscillate between 4px and 22px height
+using a keyframe animation (\texttt{waveBar}). Each bar has a staggered
+\texttt{animation-delay} of $i \times 0.12$s. Inactive bars are rendered
+as flat 6px stubs in grey.
+
+\subsubsection{\texttt{SpeakOrb}}
+A circular orb with a border that changes colour depending on the active
+state (\texttt{active ? colour : \#3f3f46}), housing the animated
+\texttt{WaveBar} and the speaker icon. Used for both the AI and User
+speaking indicators.
+
+% ==========================================
+\section{Post-Interview NLP Analytics}
+% ==========================================
+
+\subsection{Trigger Logic (Frontend)}
+\texttt{Analysis.jsx} first attempts a \texttt{GET
+/api/interviews/<id>/analysis/} to retrieve any cached report. If a 404
+is returned (no report yet), it automatically issues a
+\texttt{POST /api/interviews/<id>/analyze/} to generate one.
+
+\subsection{LLM Analysis Prompt}
+The backend assembles the full interview transcript:
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+Q1: <question>
+A1: <candidate response>
+Q2: <question>
+A2: <candidate response>
+...
+\end{verbatim}
+\end{codebox}
+The prompt instructs the LLM to return a strict JSON object with all
+metric fields. The response is stripped of markdown fences via regex before
+\texttt{json.loads()}.
+
+\subsection{Scoring Formula}
+\begin{equation}
+\text{overall\_score} = f\!\left(\text{tech}, \text{comm}, \text{conf},
+    \text{pace}, \text{fillers}, \text{power words}\right)
+\end{equation}
+The exact weighting is determined by the LLM's qualitative evaluation.
+All numeric scores are on a 0--10 float scale.
+
+\subsection{Pace Calculation}
+\begin{equation}
+\text{WPM} = \frac{\sum_i \left|\text{tokens in } A_i\right|}{T_{\text{elapsed}} / 60}
+\end{equation}
+
+\subsection{Improvement Tips Engine}
+\texttt{Analysis.jsx} embeds a hard-coded tip library keyed by metric name
+(\texttt{"Pace"}, \texttt{"Filler Words"}, \texttt{"Power Words"},
+\texttt{"Communication"}, \texttt{"Technical"}, \texttt{"Confidence"}).
+Clicking a metric card opens a modal with 5 specific, actionable tips.
+
+\subsection{Inline Transcript Analyser (\texttt{Check.jsx})}
+A standalone developer/debug utility available at \texttt{/check}:
+counts filler words, power words, and negative sentiment words in a pasted
+transcript, and computes WPM given a manual duration input. This was
+used during development to validate the analytics logic.
+
+% ==========================================
+\section{Serializers \& Data Contracts}
+% ==========================================
+
+\subsubsection{\texttt{QuestionSerializer}}
+Uses a \texttt{SerializerMethodField} to attach the related
+\texttt{Response} to each question. The \texttt{interview} context
+is passed at instantiation time; if absent, the response field returns
+\texttt{null}.
+
+\subsubsection{\texttt{InterviewDetailSerializer}}
+Overrides \texttt{get\_questions} to force ordering by
+\texttt{question.order}, guaranteeing the Q\&A sequence is always
+chronological regardless of insertion order.
+
+\subsubsection{\texttt{InterviewAnalysisSerializer}}
+Exposes all 12 metric fields of the \texttt{InterviewAnalysis} model
+as a flat JSON payload. The \texttt{strengths} and \texttt{improvements}
+fields are \texttt{JSONField} lists serialised natively.
+
+% ==========================================
+\section{Key Engineering Challenges}
+% ==========================================
+
+\subsection{WebSocket JWT Without Custom Headers}
+The browser's \texttt{WebSocket} constructor does not support custom HTTP
+headers (unlike \texttt{fetch}). The JWT cannot be sent in
+\texttt{Authorization}. \textbf{Solution}: pass the token as a URL query
+parameter \texttt{?token=<jwt>}. The custom ASGI
+\texttt{TokenAuthMiddleware} intercepts the scope before the consumer
+is invoked, validates the token, and attaches the \texttt{User} to
+\texttt{scope["user"]}.
+
+\subsection{LLM JSON Reliability}
+LLMs occasionally prefix or wrap their JSON output in markdown fences
+or prose. \textbf{Solution}: post-process every LLM response with:
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+raw = re.sub(r"^```(?:json)?\n?", "", raw)
+raw = re.sub(r"```$", "", raw).strip()
+data = json.loads(raw)
+\end{verbatim}
+\end{codebox}
+
+\subsection{Race Condition: Video Upload vs.\ WebSocket Message}
+In REAL mode, video must be uploaded \textit{before} the WebSocket
+message is sent (since the message needs the URL). But the upload is
+async and may take time. \textbf{Solution}: \texttt{submitUserResponse()}
+is \texttt{async}; it \texttt{await}s both \texttt{stopMediaRecorder()} and
+\texttt{uploadVideoBlob()} before calling \texttt{handleSendMessage()}.
+If upload fails, it gracefully sends the message with an empty
+\texttt{video\_url}.
+
+\subsection{Resume Token Budget}
+A full CV can easily exceed the context window of smaller LLMs.
+\textbf{Solution}: \texttt{pdfplumber} extracts only the text layer of
+the PDF at upload time and the backend hard-caps at 3,000 characters.
+
+\subsection{STT Stopping During TTS}
+Without coordination, the microphone picks up the AI's synthesised voice
+as user speech. \textbf{Solution}: \texttt{speakText()} calls
+\texttt{SpeechRecognition.stopListening()} in \texttt{utt.onstart} and
+only calls \texttt{startListening()} again in \texttt{utt.onend}, after
+a 300ms cooldown. The \texttt{aiSpeaking} state flag additionally gates
+the auto-start \texttt{useEffect}.
+
+\subsection{Concurrent DB Sessions During Tests}
+The remote Supabase PostgreSQL instance had other connections open when
+pytest-django tried to tear down the test database
+(\texttt{test\_postgres}). This generated a
+\texttt{PytestWarning: OperationalError: database is being accessed by
+other users}. This is non-blocking (tests still pass) and is a known
+artefact of using a shared remote DB for testing.
+
+% ==========================================
+\section{Testing Strategy}
+% ==========================================
+
+\subsection{Test Suite Location \& Configuration}
+File: \texttt{api/tests.py} (291 lines).
+Runner: \texttt{venv/bin/pytest} with \texttt{backend.settings} as the
+Django settings module.
+
+\subsection{Test Cases}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{@{}p{3.8cm} p{2.5cm}@{}}
+\toprule
+\textbf{Test} & \textbf{Validates} \\
+\midrule
+\texttt{unauthenticated\_rejected} & AnonymousUser cannot connect \\
+\texttt{authenticated\_accepted} & Valid user connects, gets Q \\
+\texttt{wrong\_user\_rejected} & User cannot access others' interview \\
+\texttt{stays\_alive\_after\_q} & WS not closed after first question \\
+\texttt{not\_close\_between\_turns} & WS open between AI and user turns \\
+\texttt{multiple\_turns} & Two full turn exchanges succeed \\
+\texttt{malformed\_json\_error} & Non-JSON input returns error frame \\
+\texttt{unknown\_type\_ignored} & Unknown message type silently dropped \\
+\texttt{empty\_message\_ignored} & Whitespace text produces no response \\
+\texttt{clean\_disconnect} & Client close does not crash server \\
+\texttt{disconnect\_is\_logged} & Consumer logs disconnection at INFO \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Mocking strategy}: \texttt{ChatGoogleGenerativeAI},
+\texttt{ChatGroq}, and \texttt{create\_react\_agent} are all stubbed with
+\texttt{unittest.mock.MagicMock} + \texttt{AsyncMock} to avoid real API
+calls. Authentication middleware is bypassed by patching
+\texttt{TokenAuthMiddleware.\_\_call\_\_} to inject a real database user.
+
+All 11 tests pass with \texttt{comm.connect(timeout=5)} to allow for
+remote PostgreSQL roundtrip latency.
+
+% ==========================================
+\section{Deployment Architecture}
+% ==========================================
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Service} & \textbf{Platform} \\
+\midrule
+Frontend (React/Vite build) & Vercel \\
+Backend (Django/Daphne) & Render \\
+PostgreSQL database & Supabase managed \\
+File storage & Supabase Storage \\
+Auth provider & Supabase Auth \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The Render backend uses Daphne to serve ASGI, supporting both HTTP and
+WebSocket traffic from a single process. \texttt{RENDER\_EXTERNAL\_HOSTNAME}
+is auto-appended to \texttt{ALLOWED\_HOSTS} at startup. Static files are
+served by WhiteNoise without a separate CDN. WebSocket URLs auto-detect
+\texttt{https://} vs.\ \texttt{http://} and emit \texttt{wss://} vs.\
+\texttt{ws://} accordingly.
+
+\subsection{Environment Variables Required}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+DJANGO_SECRET_KEY=<key>
+DJANGO_DEBUG=False
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_SECRET_KEY=<key>
+GEMINI_API_KEY=<key>
+GROQ_API_KEY=<key>
+DB_USER=<supabase_db_user>
+DB_PASSWORD=<supabase_db_pass>
+DB_HOST=<supabase_pooler_host>
+DB_NAME=postgres
+FRONTEND_URL=https://usevirtual-ai.vercel.app
+\end{verbatim}
+\end{codebox}
+
+% ==========================================
+\section{Future Work}
+% ==========================================
+
+\begin{enumerate}
+  \item \textbf{Live Facial Emotion Analysis}: Integrate OpenCV or a cloud
+        vision API to detect confidence, engagement, and stress from the
+        real-time video feed.
+  \item \textbf{AI Avatar Interviewer}: Render a photorealistic animated
+        avatar using Heygen or similar, lip-synced to the TTS output.
+  \item \textbf{Job Portal Integration}: Connect directly to job listings;
+        auto-generate tailored question sets from job description text.
+  \item \textbf{Custom Question Banks}: Let users or organisations upload
+        their own question sets and assign interviews to candidates.
+  \item \textbf{Streaming Token Output}: Switch from full-response to
+        streaming TTS (word-by-word) to reduce perceived latency.
+  \item \textbf{Voice Cloning}: Allow users to practice with a mock
+        interviewer voice that matches a real company's style.
+\end{enumerate}
+
+% ==========================================
+\section{Conclusion}
+% ==========================================
+
+Virtual AI is a comprehensive, production-grade demonstration of
+full-stack AI engineering. It integrates real-time conversational AI,
+multimodal input, persistent ASGI WebSocket state, Supabase cloud
+services, automated LLM failover, and a robust NLP analytics pipeline
+into a cohesive product that delivers genuine value to job seekers.
+
+The architectural decisions made throughout the project --- decoupled
+WebSocket and REST channels, atomic agent tool execution, resume-aware
+dynamic prompting, and zero-downtime LLM failover --- each solved concrete
+engineering problems and can be applied as reusable patterns in any
+real-time AI application.
+
+\end{multicols}
+\end{document}

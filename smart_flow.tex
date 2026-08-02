@@ -1,0 +1,473 @@
+\documentclass[10pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.60in, top=0.72in, bottom=0.72in]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{multicol}
+\usepackage{mdframed}
+\usepackage[hidelinks]{hyperref}
+
+% --- Monochromatic Color Palette ---
+\definecolor{monodark}{HTML}{111111}
+\definecolor{monomedium}{HTML}{3A3A3A}
+\definecolor{monolight}{HTML}{666666}
+\definecolor{monoline}{HTML}{CCCCCC}
+\definecolor{monoshade}{HTML}{F0F0F0}
+\definecolor{monobox}{HTML}{E8E8E8}
+
+% --- Typography & Spacing ---
+\setlist[itemize]{noitemsep, topsep=2pt, leftmargin=14pt}
+\setlist[enumerate]{noitemsep, topsep=2pt, leftmargin=14pt}
+\emergencystretch=4em
+
+% --- Code Box Style ---
+\newmdenv[
+  backgroundcolor=monoshade,
+  linecolor=monoline,
+  linewidth=0.5pt,
+  topline=true,
+  bottomline=true,
+  leftline=true,
+  rightline=true,
+  innerleftmargin=6pt,
+  innerrightmargin=6pt,
+  innertopmargin=4pt,
+  innerbottommargin=4pt,
+  skipabove=4pt,
+  skipbelow=4pt,
+]{codebox}
+
+% --- Section Headers ---
+\titleformat{\section}
+  {\color{monodark}\large\bfseries}
+  {\thesection.}{0.5em}{}
+  [\color{monoline}\titlerule]
+
+\titleformat{\subsection}
+  {\color{monomedium}\normalsize\bfseries}
+  {\thesubsection}{0.5em}{}
+
+\titleformat{\subsubsection}
+  {\color{monolight}\small\bfseries\itshape}
+  {}{0em}{}
+
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{7pt}{2pt}
+\titlespacing*{\subsubsection}{0pt}{5pt}{1pt}
+
+% --- Header and Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\lhead{\small\color{monolight} SMART FLOW --- DETAILED TECHNICAL SPECIFICATION}
+\rhead{\small\color{monolight} AUGUST 2026}
+\lfoot{\small\color{monolight} Om Mukherjee, Abhishek Kotwani, Aryan Yadav}
+\rfoot{\small\color{monolight} Page \thepage}
+
+% =============================================================
+\begin{document}
+% =============================================================
+
+% ---- TITLE BLOCK ----
+\begin{center}
+  {\Huge\bfseries\color{monodark} Smart Flow}\\[5pt]
+  {\large\itshape\color{monomedium}
+    AI-Powered Adaptive Traffic Signal Control via Computer Vision \& Deep Reinforcement Learning
+  }\\[9pt]
+  \noindent\rule{\linewidth}{1.2pt}\\[6pt]
+  {\small
+    \textbf{Authors:} Om Mukherjee \quad Abhishek Kotwani \quad Aryan Yadav
+    \quad\textbullet\quad
+    \textbf{Event:} Smart India Hackathon 2024
+  }\\[3pt]
+  {\small\color{monolight}
+    \url{https://github.com/meekhumor/AI-Based-Traffic-Signal-Control-System}
+  }\\[8pt]
+  \noindent\rule{\linewidth}{0.5pt}
+\end{center}
+
+% ---- ABSTRACT ----
+\noindent\textbf{Abstract.}\quad
+Smart Flow is an AI-driven adaptive traffic signal control system developed for
+Smart India Hackathon 2024. It combines a computer vision pipeline (lane
+detection via Hough Transform, background subtraction, contour-based vehicle
+counting, and YOLOv8 object detection) with a Deep Q-Network (DQN) trained
+inside the SUMO traffic microsimulator. The system observes live vehicle
+density per lane, then dynamically adjusts traffic-light phase durations to
+minimise cumulative waiting time across all controlled intersections. This
+document provides a full technical specification: modular package architecture, CV
+algorithms, RL agent design, SUMO integration, map data, trained model
+artefacts, data-flow diagrams, engineering decisions, refactored project structure,
+and a future roadmap.
+
+\vspace{6pt}
+\noindent\rule{\linewidth}{0.4pt}
+\vspace{4pt}
+
+% ---- SWITCH TO TWO-COLUMN BODY ----
+\raggedcolumns
+\begin{multicols}{2}
+
+% ==========================================
+\section{Introduction \& Motivation}
+% ==========================================
+
+Urban intersections in India's growing cities have become critical
+bottlenecks. Average commuters lose 2--3 hours daily; conventional
+timer-based signals cannot adapt to dynamic patterns; idling vehicles emit
+significant CO\textsubscript{2}. Manual traffic management is inconsistent
+and resource-intensive.
+
+Smart Flow addresses every one of these gaps by (1) \textit{seeing} real
+traffic conditions through computer vision, (2) \textit{learning} an optimal
+switching policy through reinforcement learning, and (3) \textit{acting} by
+dynamically adjusting signal phase durations in real time.
+
+\subsection{Project Goals}
+\begin{enumerate}
+  \item Automatically detect the number of vehicles in each lane from a
+        CCTV-quality video feed, with no specialised hardware.
+  \item Train a DQN agent inside the SUMO microsimulator to discover a
+        policy that minimises lane waiting time.
+  \item Generalise across multiple real-world intersection topologies
+        (single intersection, city block, King Circle roundabout).
+  \item Export the trained model so it can be deployed on edge hardware
+        via ONNX $\to$ OpenVINO inference.
+\end{enumerate}
+
+% ==========================================
+\section{Complete Technology Stack}
+% ==========================================
+
+\begin{center}
+\small\color{monodark}
+\begin{tabular}{@{}p{1.7cm} p{4.5cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Technology} \\
+\midrule
+Language     & Python 3.10+ \\
+CV Library   & OpenCV (\texttt{cv2}) 4.x \\
+Detection    & YOLOv8n (\texttt{ultralytics}) \\
+RL Framework & Stable-Baselines3 (DQN) \\
+RL Env       & Gymnasium (\texttt{gymnasium}) \\
+Simulator    & SUMO + TraCI API \\
+Map Source   & OpenStreetMap $\to$ \texttt{netconvert} \\
+Numerics     & NumPy, Matplotlib \\
+Notebooks    & Jupyter (exploration only) \\
+Model Format & SB3 \texttt{.zip} $\to$ ONNX $\to$ OpenVINO IR \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==========================================
+\section{Repository File Structure}
+% ==========================================
+
+The repository has been restructured into clean, modular Python packages
+and dedicated asset directories.
+
+\subsection{Refactored Layout Mapping}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{@{}p{3.0cm} p{3.3cm}@{}}
+\toprule
+\textbf{Refactored path} & \textbf{Description} \\
+\midrule
+\texttt{cv/utils.py}
+  & Shared contour detection \& cropping functions \\
+\texttt{cv/lane\_detector.py}
+  & Core Hough transform lane landmark API \\
+\texttt{cv/background\_contour.py}
+  & Noise baseline estimation \\
+\texttt{cv/vehicle\_counter.py}
+  & Real-time contour vehicle counter \\
+\texttt{cv/yolo\_counter.py}
+  & YOLOv8 object detection counter \\
+\texttt{cv/lane\_debug\_image.py}
+  & Still image lane visualizer \\
+\texttt{cv/lane\_debug\_video.py}
+  & Video lane visualizer \\
+\texttt{cv/hough\_explore\_image.py}
+  & Hough slope exploration (image) \\
+\texttt{cv/hough\_explore\_video.py}
+  & Hough slope exploration (video) \\
+\texttt{rl/train\_dqn.py}
+  & SB3 DQN training entry point \\
+\texttt{rl/test\_dqn.py}
+  & SUMO-GUI evaluation script \\
+\texttt{rl/saved\_models/}
+  & Trained model \texttt{.zip} archives \\
+\texttt{sumo/kingcircle.sumocfg}
+  & Active SUMO simulation config \\
+\texttt{sumo/maps/}
+  & \texttt{.net.xml} \& \texttt{.rou.xml} files \\
+\texttt{notebooks/}
+  & Jupyter exploration notebooks \\
+\texttt{docs/}
+  & SIH2024 presentation \& PDF docs \\
+\texttt{WORKFLOW.md}
+  & Execution steps \& guide \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Annotated Project Directory Tree}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+AI-Based-Traffic-Signal-Control-System/
+├── cv/
+│   ├── __init__.py
+│   ├── utils.py               # shared contours & crop
+│   ├── lane_detector.py       # core lane detection API
+│   ├── background_contour.py  # baseline noise estimation
+│   ├── vehicle_counter.py     # contour counting script
+│   ├── yolo_counter.py        # YOLOv8 alternative counter
+│   ├── lane_debug_image.py    # debug visualizer (image)
+│   ├── lane_debug_video.py    # debug visualizer (video)
+│   ├── hough_explore_image.py # Hough slope exploration
+│   └── hough_explore_video.py # Hough slope exploration
+├── rl/
+│   ├── __init__.py
+│   ├── train_dqn.py           # DQN training script
+│   ├── test_dqn.py            # SUMO-GUI evaluation script
+│   └── saved_models/          # .zip model snapshots
+├── sumo/
+│   ├── kingcircle.sumocfg     # active SUMO config
+│   └── maps/                  # .net.xml & .rou.xml files
+├── notebooks/                 # Jupyter research notebooks
+├── docs/                      # SIH2024 slides & PDF
+├── yolov8n.pt                 # YOLOv8n pretrained weights
+├── smart_flow.tex             # LaTeX technical specification
+├── WORKFLOW.md                # step-by-step run guide
+└── README.md
+\end{verbatim}
+\end{codebox}
+
+% ==========================================
+\section{High-Level System Architecture}
+% ==========================================
+
+The system consists of two decoupled subsystems sharing the lane density
+signal:
+
+\subsubsection{Subsystem A --- Computer Vision Pipeline (\texttt{cv/})}
+Processes CCTV video feeds to generate real-time vehicle counts per lane.
+Built with OpenCV and NumPy, executing standalone without simulator overhead.
+
+\subsubsection{Subsystem B --- RL Signal Controller (\texttt{rl/})}
+A DQN agent trained inside SUMO using TraCI. Inputs consist of lane halting
+counts, phase state, and time remaining. Output actions adjust green phase
+durations dynamically.
+
+\subsubsection{Data Flow Summary}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+[Camera / Video File]
+  |
+  v
+lane_detector.py  (Hough Lines)
+  |--> top, left, right ROI points
+  v
+background_contour.py
+  |--> back_contour baseline
+  v
+vehicle_counter.py
+  |--> (avg - baseline) / 8 = vehicle_count
+  v
+[SUMO TraCI Env] <-- vehicle_count
+  |
+  _get_state()
+  [halting, phase, time_remaining ...]
+  |
+  DQN Agent predict()
+  |
+  _take_action()
+  [extend / switch / keep]
+  |
+  TraCI setPhaseDuration() / setPhase()
+\end{verbatim}
+\end{codebox}
+
+% ==========================================
+\section{Computer Vision Pipeline}
+% ==========================================
+
+\subsection{Stage 1 --- Lane Detection}
+File: \texttt{cv/lane\_detector.py}
+
+\textbf{Purpose:} Compute landmark points \texttt{top}, \texttt{left},
+\texttt{right} defining the trapezoidal Region of Interest (ROI).
+
+\subsubsection{Algorithm}
+\begin{enumerate}
+  \item Rotate each frame 90$^\circ$ CW; resize to $800\times600$.
+  \item Greyscale conversion + Canny edge detection (thresholds 50, 150).
+  \item Sample Hough Lines every 10th frame
+        (\texttt{minLineLength=100}, \texttt{maxLineGap=10}).
+  \item Classify line segments by slope $m$:
+        \begin{itemize}
+          \item $m < -0.4$ $\Rightarrow$ \textbf{blue} (left boundary)
+          \item $m > 0.3$  $\Rightarrow$ \textbf{green} (right boundary)
+          \item $|m| \le 0.1$ $\Rightarrow$ \textbf{red} (stop line)
+        \end{itemize}
+  \item Compute temporal averages of lines per colour.
+  \item Extend averaged lines across frame boundaries ($y = mx + c$).
+  \item Compute intersection via Cramer's rule.
+  \item Set \texttt{top}, \texttt{left}, and \texttt{right} landmark points.
+\end{enumerate}
+
+\subsubsection{Intersection via Cramer's Rule}
+\begin{equation}
+\det = A_1 B_2 - A_2 B_1
+\end{equation}
+\begin{equation}
+i_x = \frac{C_1 B_2 - C_2 B_1}{\det},\quad
+i_y = \frac{A_1 C_2 - A_2 C_1}{\det}
+\end{equation}
+
+\subsection{Stage 2 --- Background Calibration}
+File: \texttt{cv/background\_contour.py}
+
+\textbf{Purpose:} Estimate empty-road baseline contour count ($N_{\text{bg}}$)
+to subtract static background noise.
+
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+back_contours = np.min(vehicle_counts) - 20
+\end{verbatim}
+\end{codebox}
+
+\subsection{Stage 3 --- Live Vehicle Counting}
+File: \texttt{cv/vehicle\_counter.py}
+
+\textbf{Purpose:} Real-time moving vehicle count per approach.
+
+\begin{equation}
+\text{count} = \left\lfloor
+  \frac{\overline{N}_{\text{contours}} - N_{\text{bg}}}{8}
+\right\rfloor
+\end{equation}
+
+\subsection{Stage 4 --- YOLOv8 Counter}
+File: \texttt{cv/yolo\_counter.py}
+
+Deep-learning alternative evaluating detections for class labels
+$\in$ \{car, truck, bus, motorbike\}.
+
+% ==========================================
+\section{SUMO Simulation Environment}
+% ==========================================
+
+\subsection{Map Data (\texttt{sumo/maps/})}
+Maps include \texttt{SingleTL}, \texttt{intersection}, \texttt{city1},
+\texttt{kingcircle}, and \texttt{five\_gardens}.
+
+\subsection{Active SUMO Config}
+Configuration file \texttt{sumo/kingcircle.sumocfg} specifies network topology
+and vehicle flow parameters.
+
+% ==========================================
+\section{Deep Q-Network (DQN) Agent}
+% ==========================================
+
+\subsection{Gymnasium Environment: \texttt{TrafficLightEnv}}
+Implemented in \texttt{rl/train\_dqn.py} and \texttt{rl/test\_dqn.py}.
+
+\subsection{Observation \& Action Spaces}
+\begin{equation}
+\mathbf{s} = \bigl[h_1, \ldots, h_L,\; \phi_1, \tau_1, \ldots, \phi_K, \tau_K\bigr]
+\end{equation}
+
+Action Space: \texttt{Discrete(3)}:
+\begin{itemize}
+  \item Action 0: Extend green phase (+5s)
+  \item Action 1: Switch phase
+  \item Action 2: Keep phase
+\end{itemize}
+
+\subsection{Reward Function}
+\begin{equation}
+r_t = -\sum_{\ell \in \mathcal{L}} W_\ell(t)
+\end{equation}
+
+% ==========================================
+\section{Resolved Engineering Issues}
+% ==========================================
+
+\subsection{SyntaxError Fix in \texttt{rl/test\_dqn.py}}
+Resolved the stray syntax error on line 105 (\texttt{obs, \_ = env.reset()q}
+corrected to \texttt{obs, \_ = env.reset()}).
+
+\subsection{Code Duplication Removal}
+Extracted copy-pasted contour detection and image cropping functions into
+a unified, reusable module \texttt{cv/utils.py}.
+
+\subsection{Import Side-Effects Prevention}
+Wrapped top-level execution code inside \texttt{if \_\_name\_\_ == '\_\_main\_\_':}
+blocks in \texttt{cv/vehicle\_counter.py} and \texttt{cv/yolo\_counter.py}.
+
+\subsection{Path Normalization}
+Standardized relative config paths (\texttt{sumo/kingcircle.sumocfg}) and model
+save/load locations (\texttt{rl/saved_models/}) across all modules.
+
+% ==========================================
+\section{Run Guide (Quick Reference)}
+% ==========================================
+
+\begin{enumerate}
+  \item \textbf{Train DQN Model:}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+python3 -m rl.train_dqn
+\end{verbatim}
+\end{codebox}
+  \item \textbf{Evaluate Model in SUMO-GUI:}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+python3 -m rl.test_dqn
+\end{verbatim}
+\end{codebox}
+  \item \textbf{Run Contour Vehicle Counter:}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+python3 -m cv.vehicle_counter
+\end{verbatim}
+\end{codebox}
+  \item \textbf{Run YOLO Vehicle Counter:}
+\begin{codebox}
+\footnotesize
+\begin{verbatim}
+python3 -m cv.yolo_counter
+\end{verbatim}
+\end{codebox}
+\end{enumerate}
+
+% ==========================================
+\section{Conclusion}
+% ==========================================
+
+Smart Flow demonstrates a modular, scalable architecture combining Computer
+Vision and Reinforcement Learning for urban traffic management. With the complete
+package refactoring and bug resolution, the project is structured cleanly for
+maintainability, further research, and edge deployment.
+
+\end{multicols}
+\end{document}

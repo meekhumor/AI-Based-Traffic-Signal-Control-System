@@ -1,12 +1,14 @@
+import os
+import uuid
 import traci
 import numpy as np
 from gymnasium import Env
 from gymnasium.spaces import Discrete, Box
 from stable_baselines3 import DQN
-import uuid
+
 
 class TrafficLightEnv(Env):
-    def __init__(self, config_file, max_steps=1000):
+    def __init__(self, config_file="sumo/kingcircle.sumocfg", max_steps=1000):
         super().__init__()
         self.config_file = config_file
         self.max_steps = max_steps
@@ -14,7 +16,6 @@ class TrafficLightEnv(Env):
         self.connection_label = str(uuid.uuid4())
         self.is_connected = False
         
-        # Initialize traffic lights and lanes in __init__
         self.tl_ids = []
         self.controlled_lanes = {}
         traci.start(["sumo", "-c", self.config_file, "--no-step-log", "true"], label=self.connection_label)
@@ -97,19 +98,30 @@ class TrafficLightEnv(Env):
             except traci.exceptions.TraCIException:
                 pass
 
-# Test the trained model with SUMO-GUI
-config_file = "intersection.sumocfg"
-env = TrafficLightEnv(config_file)
-model = DQN.load("models/kingcircle")
 
-obs, _ = env.reset()q
-total_reward = 0
-for _ in range(1000):
-    action, _states = model.predict(obs, deterministic=True)
-    obs, reward, done, truncated, _ = env.step(action)
-    total_reward += reward
-    if done or truncated:
-        obs, _ = env.reset()
+if __name__ == "__main__":
+    config_file = "sumo/kingcircle.sumocfg"
+    if not os.path.exists(config_file) and os.path.exists("intersection.sumocfg"):
+        config_file = "intersection.sumocfg"
 
-env.close()
-print(f"Total Reward: {total_reward}")
+    env = TrafficLightEnv(config_file)
+
+    model_path = "rl/saved_models/kingcircle"
+    if not os.path.exists(model_path + ".zip") and os.path.exists("rl/saved_models/traffic_light_dqn.zip"):
+        model_path = "rl/saved_models/traffic_light_dqn"
+    elif not os.path.exists(model_path + ".zip") and os.path.exists("models/kingcircle.zip"):
+        model_path = "models/kingcircle"
+
+    model = DQN.load(model_path)
+
+    obs, _ = env.reset() 
+    total_reward = 0
+    for _ in range(1000):
+        action, _states = model.predict(obs, deterministic=True)
+        obs, reward, done, truncated, _ = env.step(action)
+        total_reward += reward
+        if done or truncated:
+            obs, _ = env.reset()
+
+    env.close()
+    print(f"Total Reward: {total_reward}")

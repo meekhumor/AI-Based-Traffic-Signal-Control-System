@@ -97,31 +97,39 @@ def detect_lane(video_path):
         B2 = rx1 - rx2
         C2 = A2 * rx1 + B2 * ry1
 
-        # Determinant of the coefficient matrix
         det = A1 * B2 - A2 * B1
 
         if det == 0:
             return None  
 
-        # Compute intersection point
         ix = int((C1 * B2 - C2 * B1) / det)
         iy = int((A1 * C2 - A2 * C1) / det)
 
-        # Check if intersection point lies within both line segments
         if (min(bx1, bx2) <= ix <= max(bx1, bx2) and min(by1, by2) <= iy <= max(by1, by2) and
             min(rx1, rx2) <= ix <= max(rx1, rx2) and min(ry1, ry2) <= iy <= max(ry1, ry2)):
             return (ix, iy)
         else:
             return None  
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset video to first frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0) 
     ret, frame = cap.read()
+    if not ret:
+        cap.release()
+        return None, None, None
+
     frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)  
     frame = cv2.resize(frame, (800, 600))
     height, width = frame.shape[:2]
 
+    bx1, by1, bx2, by2 = 0, 0, 0, 0
+    rx1, ry1, rx2, ry2 = 0, 0, 0, 0
+    gx1, gy1, gx2, gy2 = 0, 0, 0, 0
+
     for color, line in final_lines.items():
-        x1, y1, x2, y2 = extend_line(*line, width, height)
+        ext = extend_line(*line, width, height)
+        if ext is None:
+            continue
+        x1, y1, x2, y2 = ext
         if color == 'blue':
             bx1, by1, bx2, by2 = x1, y1, x2, y2
         elif color == 'red':
@@ -129,18 +137,18 @@ def detect_lane(video_path):
         elif color == 'green':
             gx1, gy1, gx2, gy2 = x1, y1, x2, y2
 
-    rmx, rmy = int((rx1+rx2)/2), int((ry1+ry2)/2)
-    ix, iy = get_line_intersection(bx1, by1, bx2, by2, rx1, ry1, rx2, ry2)
-    px, py = int((ix+rmx)/2), int((iy+rmy)/2)
+    cap.release()
 
-    if bx1 < bx2:
-        left = (bx1, by1)
+    rmx, rmy = int((rx1 + rx2) / 2), int((ry1 + ry2) / 2)
+    intersection = get_line_intersection(bx1, by1, bx2, by2, rx1, ry1, rx2, ry2)
+    if intersection is not None:
+        ix, iy = intersection
+        px, py = int((ix + rmx) / 2), int((iy + rmy) / 2)
     else:
-        left = (bx2, by2)
+        px, py = rmx, rmy
 
     left = (bx1, by1) if bx1 < bx2 else (bx2, by2)
     right = (gx1, gy1) if gx1 > gx2 else (gx2, gy2)
     top = (px, py)
-
 
     return top, left, right

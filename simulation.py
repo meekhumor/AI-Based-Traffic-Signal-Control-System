@@ -3,7 +3,6 @@ import time
 import threading
 import pygame
 
-# Default signal times
 defaultRed = 150
 defaultYellow = 3
 defaultGreen = 20
@@ -15,7 +14,7 @@ noOfSignals = 4
 simTime = 300
 timeElapsed = 0
 
-gap = 15    # stopping gap
+gap = 15    
 gap2 = 15 
 
 currentGreen = 0
