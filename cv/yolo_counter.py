@@ -21,7 +21,7 @@ def run_yolo_counter(video_path='videos/road.mp4'):
     vehicle_counts = []
     timestamps = []
 
-    model = YOLO('yolov8n.pt') 
+    model = YOLO('cv/yolov8n.pt') 
 
     frame_count = 0
     while cap.isOpened():
