@@ -70,9 +70,6 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\lhead{\small\color{monolight} SMART FLOW --- DETAILED TECHNICAL SPECIFICATION}
-\rhead{\small\color{monolight} AUGUST 2026}
-\lfoot{\small\color{monolight} Om Mukherjee, Abhishek Kotwani, Aryan Yadav}
 \rfoot{\small\color{monolight} Page \thepage}
 
 % =============================================================
@@ -83,23 +80,14 @@
 \begin{center}
   {\Huge\bfseries\color{monodark} Smart Flow}\\[5pt]
   {\large\itshape\color{monomedium}
-    AI-Powered Adaptive Traffic Signal Control via Computer Vision \& Deep Reinforcement Learning
+    AI Powered Traffic Signal Control via Computer Vision \& Deep Reinforcement Learning
   }\\[9pt]
-  \noindent\rule{\linewidth}{1.2pt}\\[6pt]
-  {\small
-    \textbf{Authors:} Om Mukherjee \quad Abhishek Kotwani \quad Aryan Yadav
-    \quad\textbullet\quad
-    \textbf{Event:} Smart India Hackathon 2024
-  }\\[3pt]
-  {\small\color{monolight}
-    \url{https://github.com/meekhumor/AI-Based-Traffic-Signal-Control-System}
-  }\\[8pt]
-  \noindent\rule{\linewidth}{0.5pt}
+  \noindent\rule{\linewidth}{0.4pt}\\[6pt]
 \end{center}
 
 % ---- ABSTRACT ----
 \noindent\textbf{Abstract.}\quad
-Smart Flow is an AI-driven adaptive traffic signal control system developed for
+Smart Flow is an AI driven adaptive traffic signal control system developed for
 Smart India Hackathon 2024. It combines a computer vision pipeline (lane
 detection via Hough Transform, background subtraction, contour-based vehicle
 counting, and YOLOv8 object detection) with a Deep Q-Network (DQN) trained
@@ -177,22 +165,22 @@ Model Format & SB3 \texttt{.zip} $\to$ ONNX $\to$ OpenVINO IR \\
 The repository has been restructured into clean, modular Python packages
 and dedicated asset directories.
 
-\subsection{Refactored Layout Mapping}
+\subsection{Layout Mapping}
 
 \begin{center}
 \scriptsize
-\begin{tabular}{@{}p{3.0cm} p{3.3cm}@{}}
+\begin{tabular}{@{}p{3.5cm} p{4.3cm}@{}}
 \toprule
-\textbf{Refactored path} & \textbf{Description} \\
+\textbf{File path} & \textbf{Description} \\
 \midrule
 \texttt{cv/utils.py}
-  & Shared contour detection \& cropping functions \\
+  & contour detection \& cropping functions \\
 \texttt{cv/lane\_detector.py}
-  & Core Hough transform lane landmark API \\
+  & Core lane landmark API \\
 \texttt{cv/background\_contour.py}
   & Noise baseline estimation \\
 \texttt{cv/vehicle\_counter.py}
-  & Real-time contour vehicle counter \\
+  & Real time contour vehicle counter \\
 \texttt{cv/yolo\_counter.py}
   & YOLOv8 object detection counter \\
 \texttt{cv/lane\_debug\_image.py}
@@ -204,109 +192,40 @@ and dedicated asset directories.
 \texttt{cv/hough\_explore\_video.py}
   & Hough slope exploration (video) \\
 \texttt{rl/train\_dqn.py}
-  & SB3 DQN training entry point \\
+  & DQN training entry point \\
 \texttt{rl/test\_dqn.py}
   & SUMO-GUI evaluation script \\
 \texttt{rl/saved\_models/}
   & Trained model \texttt{.zip} archives \\
-\texttt{sumo/kingcircle.sumocfg}
-  & Active SUMO simulation config \\
 \texttt{sumo/maps/}
   & \texttt{.net.xml} \& \texttt{.rou.xml} files \\
 \texttt{notebooks/}
-  & Jupyter exploration notebooks \\
-\texttt{docs/}
-  & SIH2024 presentation \& PDF docs \\
-\texttt{WORKFLOW.md}
-  & Execution steps \& guide \\
+  & Jupyter notebooks \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\subsection{Annotated Project Directory Tree}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-AI-Based-Traffic-Signal-Control-System/
-├── cv/
-│   ├── __init__.py
-│   ├── utils.py               # shared contours & crop
-│   ├── lane_detector.py       # core lane detection API
-│   ├── background_contour.py  # baseline noise estimation
-│   ├── vehicle_counter.py     # contour counting script
-│   ├── yolo_counter.py        # YOLOv8 alternative counter
-│   ├── lane_debug_image.py    # debug visualizer (image)
-│   ├── lane_debug_video.py    # debug visualizer (video)
-│   ├── hough_explore_image.py # Hough slope exploration
-│   └── hough_explore_video.py # Hough slope exploration
-├── rl/
-│   ├── __init__.py
-│   ├── train_dqn.py           # DQN training script
-│   ├── test_dqn.py            # SUMO-GUI evaluation script
-│   └── saved_models/          # .zip model snapshots
-├── sumo/
-│   ├── kingcircle.sumocfg     # active SUMO config
-│   └── maps/                  # .net.xml & .rou.xml files
-├── notebooks/                 # Jupyter research notebooks
-├── docs/                      # SIH2024 slides & PDF
-├── yolov8n.pt                 # YOLOv8n pretrained weights
-├── smart_flow.tex             # LaTeX technical specification
-├── WORKFLOW.md                # step-by-step run guide
-└── README.md
-\end{verbatim}
-\end{codebox}
-
 % ==========================================
-\section{High-Level System Architecture}
+\section{High Level System Architecture}
 % ==========================================
 
 The system consists of two decoupled subsystems sharing the lane density
 signal:
 
-\subsubsection{Subsystem A --- Computer Vision Pipeline (\texttt{cv/})}
+\subsubsection{Subsystem A: Computer Vision Pipeline (\texttt{cv/})}
 Processes CCTV video feeds to generate real-time vehicle counts per lane.
 Built with OpenCV and NumPy, executing standalone without simulator overhead.
 
-\subsubsection{Subsystem B --- RL Signal Controller (\texttt{rl/})}
+\subsubsection{Subsystem B: RL Signal Controller (\texttt{rl/})}
 A DQN agent trained inside SUMO using TraCI. Inputs consist of lane halting
 counts, phase state, and time remaining. Output actions adjust green phase
 durations dynamically.
-
-\subsubsection{Data Flow Summary}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-[Camera / Video File]
-  |
-  v
-lane_detector.py  (Hough Lines)
-  |--> top, left, right ROI points
-  v
-background_contour.py
-  |--> back_contour baseline
-  v
-vehicle_counter.py
-  |--> (avg - baseline) / 8 = vehicle_count
-  v
-[SUMO TraCI Env] <-- vehicle_count
-  |
-  _get_state()
-  [halting, phase, time_remaining ...]
-  |
-  DQN Agent predict()
-  |
-  _take_action()
-  [extend / switch / keep]
-  |
-  TraCI setPhaseDuration() / setPhase()
-\end{verbatim}
-\end{codebox}
 
 % ==========================================
 \section{Computer Vision Pipeline}
 % ==========================================
 
-\subsection{Stage 1 --- Lane Detection}
+\subsection{Stage 1: Lane Detection}
 File: \texttt{cv/lane\_detector.py}
 
 \textbf{Purpose:} Compute landmark points \texttt{top}, \texttt{left},
@@ -339,10 +258,10 @@ i_x = \frac{C_1 B_2 - C_2 B_1}{\det},\quad
 i_y = \frac{A_1 C_2 - A_2 C_1}{\det}
 \end{equation}
 
-\subsection{Stage 2 --- Background Calibration}
+\subsection{Stage 2: Background Calibration}
 File: \texttt{cv/background\_contour.py}
 
-\textbf{Purpose:} Estimate empty-road baseline contour count ($N_{\text{bg}}$)
+\textbf{Purpose:} Estimate empty road baseline contour count ($N_{\text{bg}}$)
 to subtract static background noise.
 
 \begin{codebox}
@@ -352,7 +271,7 @@ back_contours = np.min(vehicle_counts) - 20
 \end{verbatim}
 \end{codebox}
 
-\subsection{Stage 3 --- Live Vehicle Counting}
+\subsection{Stage 3: Live Vehicle Counting}
 File: \texttt{cv/vehicle\_counter.py}
 
 \textbf{Purpose:} Real-time moving vehicle count per approach.
@@ -363,12 +282,12 @@ File: \texttt{cv/vehicle\_counter.py}
 \right\rfloor
 \end{equation}
 
-\subsection{Stage 4 --- YOLOv8 Counter}
+\subsection{Stage 4: YOLOv8 Counter}
 File: \texttt{cv/yolo\_counter.py}
 
-Deep-learning alternative evaluating detections for class labels
+Deep learning alternative evaluating detections for class labels
 $\in$ \{car, truck, bus, motorbike\}.
-
+\columnbreak
 % ==========================================
 \section{SUMO Simulation Environment}
 % ==========================================
@@ -382,7 +301,7 @@ Configuration file \texttt{sumo/kingcircle.sumocfg} specifies network topology
 and vehicle flow parameters.
 
 % ==========================================
-\section{Deep Q-Network (DQN) Agent}
+\section{Deep Q Network (DQN) Agent}
 % ==========================================
 
 \subsection{Gymnasium Environment: \texttt{TrafficLightEnv}}
@@ -404,61 +323,6 @@ Action Space: \texttt{Discrete(3)}:
 \begin{equation}
 r_t = -\sum_{\ell \in \mathcal{L}} W_\ell(t)
 \end{equation}
-
-% ==========================================
-\section{Resolved Engineering Issues}
-% ==========================================
-
-\subsection{SyntaxError Fix in \texttt{rl/test\_dqn.py}}
-Resolved the stray syntax error on line 105 (\texttt{obs, \_ = env.reset()q}
-corrected to \texttt{obs, \_ = env.reset()}).
-
-\subsection{Code Duplication Removal}
-Extracted copy-pasted contour detection and image cropping functions into
-a unified, reusable module \texttt{cv/utils.py}.
-
-\subsection{Import Side-Effects Prevention}
-Wrapped top-level execution code inside \texttt{if \_\_name\_\_ == '\_\_main\_\_':}
-blocks in \texttt{cv/vehicle\_counter.py} and \texttt{cv/yolo\_counter.py}.
-
-\subsection{Path Normalization}
-Standardized relative config paths (\texttt{sumo/kingcircle.sumocfg}) and model
-save/load locations (\texttt{rl/saved_models/}) across all modules.
-
-% ==========================================
-\section{Run Guide (Quick Reference)}
-% ==========================================
-
-\begin{enumerate}
-  \item \textbf{Train DQN Model:}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-python3 -m rl.train_dqn
-\end{verbatim}
-\end{codebox}
-  \item \textbf{Evaluate Model in SUMO-GUI:}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-python3 -m rl.test_dqn
-\end{verbatim}
-\end{codebox}
-  \item \textbf{Run Contour Vehicle Counter:}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-python3 -m cv.vehicle_counter
-\end{verbatim}
-\end{codebox}
-  \item \textbf{Run YOLO Vehicle Counter:}
-\begin{codebox}
-\footnotesize
-\begin{verbatim}
-python3 -m cv.yolo_counter
-\end{verbatim}
-\end{codebox}
-\end{enumerate}
 
 % ==========================================
 \section{Conclusion}
